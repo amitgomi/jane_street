@@ -21,7 +21,7 @@ using namespace std;
 
 int RANGE_MIN = 1;
 int RANGE_MAX = 50;
-int MAX_SQUARE_SUM = 900;
+int MAX_SQUARE_SUM = 291;
 
 bool iner_isAmSquare(vector<vector<int> > &square){
     // verify size of square.
