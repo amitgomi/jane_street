@@ -135,12 +135,19 @@ vector<vector<vector<int>>> rec(vector<vector<vector<int>>> &shape, map<pair<int
 vector<vector<vector<int>>> solve(map<pair<int,int> , vector<vector<vector<int>>>> &am_squares){
     vector<vector<vector<int>>> res;
 
-    for(auto it: am_squares){
-        cout<<"Progress: "<<it.first.first<<" "<<it.first.second<<endl;
-        for(auto square:it.second){
-            vector<vector<vector<int>>> shape;
-            shape.push_back(square);
-            auto sol = rec(shape, am_squares);
+    // map to vector for paralalization.
+    vector<vector<vector<int>>> all_squares;
+    for(auto it:am_squares){
+        all_squares.insert(all_squares.end(), it.second.begin(),it.second.end());
+    }
+
+#pragma omp parallel for
+    for (int i=0;i<all_squares.size();i++){
+        vector<vector<vector<int>>> shape;
+        shape.push_back(all_squares[i]);
+        auto sol = rec(shape, am_squares);
+#pragma omp critical
+        {
             res = selectBetter(res, sol);
         }
     }
