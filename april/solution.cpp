@@ -19,9 +19,17 @@ using namespace std;
 // ll gcd(ll a, ll b) { if (b == 0) return a; return gcd(b, a % b); } 
 ///////////////////////////////////////////////////////////
 
+
+// General terms used in this code:
+// 1. Shape: The shape in this code represents the answer that we want.
+// 2. square: it is 3*3 matrix, which can be subpart of shape.
+
+int MAX_SHAPE_SUM = 480;
+
 vector<vector<vector<int>>> best_sol;
 int best_score = INT_MAX;
 
+// Finds the sum of all existing elemnts in shape.
 int getSum(const vector<vector<vector<int>>> &shape){
     int sum = 0;
     for(auto square:shape){
@@ -35,6 +43,30 @@ int getSum(const vector<vector<vector<int>>> &shape){
     return sum;
 }
 
+// Finds the minimum possible sum of partially filled shape.
+int getExptrapolatedSum(const vector<vector<vector<int>>> &shape){
+    int sum = getSum(shape);
+    if(shape.size()>=4) return sum;
+    if(shape.size() == 3){
+        // Since (0,0) and (1,0) for 1st square are not counted, there are two empty collumns in 4th square.
+        return max(sum + 2*(shape[2][2][1]+shape[2][2][0]),
+                   sum + 2*(shape[0][0][0]+shape[0][1][0]));
+    }
+    if(shape.size() == 2){
+        return sum + (shape[1][2][1]+shape[1][2][0])+3*(shape[0][0][0]+shape[0][1][0])+3;
+    }
+    if(shape.size() == 1){
+        return sum + 2*(shape[0][2][1]+shape[0][2][0])+3*(shape[0][0][0]+shape[0][1][0]) + 21;
+    }
+    return 190;
+}
+
+// Prints the solution.
+// It prints 4 3*3 squares. These squares corresponds to each almost magic square present in answer shape.
+// First square from solution printed is put in right most square in shape.
+// Second square from solution printed is rotated 90 clockwise and then added to clockwise next square in shape.
+// and so on.
+// Note all elements overlapping in between squares will be same.
 void printSol(vector<vector<vector<int>>> shape){
     cout<<"Printing sol"<<endl;
     for(auto square: shape){
@@ -66,6 +98,7 @@ map<pair<int,int> , vector<vector<vector<int>>>> readAmSquares(){
     return res;
 }
 
+// It validates if a partially filled can become valid answer shape when it gets filled completely.
 bool mayBecomeValidShape(vector<vector<vector<int>>> &shape){
     int n = shape.size();
     for(int i=0;(i<n-1)||(n == 4 && i==3);i++){
@@ -96,11 +129,14 @@ bool mayBecomeValidShape(vector<vector<vector<int>>> &shape){
     else{
         return false;
     }
+
+    // validate sum
+    if(getExptrapolatedSum(shape) > MAX_SHAPE_SUM) return false;
     return true;
 }
 
 
-
+// It selects one shape from the given shapes which has lower total sum.
 vector<vector<vector<int>>> selectBetter(vector<vector<vector<int>>> &s1, vector<vector<vector<int>>> &s2){
     if(s1.size() == 0) return s2;
     if(s2.size() == 0) return s1;
@@ -108,6 +144,7 @@ vector<vector<vector<int>>> selectBetter(vector<vector<vector<int>>> &s1, vector
     return s1;
 }
 
+// Recursion to fill the 4 squares in shape one by one in recursive way by trying squares from available options.
 vector<vector<vector<int>>> rec(vector<vector<vector<int>>> &shape, map<pair<int,int> , vector<vector<vector<int>>>> &am_squares){
     vector<vector<vector<int>>> res;
     if(!mayBecomeValidShape(shape)) return res;
@@ -143,12 +180,16 @@ vector<vector<vector<int>>> solve(map<pair<int,int> , vector<vector<vector<int>>
 
 #pragma omp parallel for
     for (int i=0;i<all_squares.size();i++){
+        
+        // if(mp(all_squares[i][0][0],all_squares[i][1][0]) < mp(16,47)) continue;
         vector<vector<vector<int>>> shape;
         shape.push_back(all_squares[i]);
         auto sol = rec(shape, am_squares);
 #pragma omp critical
         {
             res = selectBetter(res, sol);
+            if(i>0 && (mp(all_squares[i][0][0],all_squares[i][1][0]) != mp(all_squares[i-1][0][0],all_squares[i-1][1][0])))
+                cout<<"Progress: "<<all_squares[i][0][0]<<' '<<all_squares[i][1][0]<<endl;
         }
     }
 
@@ -163,6 +204,7 @@ int main(){
 
     vector<vector<vector<int>>> ans = solve(am_squares);
 
+    cout<<"printing final answer"<<endl;
     printSol(ans);
 	return 0;
 }
