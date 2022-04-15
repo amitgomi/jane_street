@@ -20,18 +20,21 @@ using namespace std;
 ///////////////////////////////////////////////////////////
 
 int RANGE_MIN = 1;
-int RANGE_MAX = 50;
+int RANGE_MAX = 90;
 int MAX_SQUARE_SUM = 280;
+int MAX_AB_SUM = 60; // sum of (0,0) and (0,1)
 
 bool iner_isAmSquare(vector<vector<int> > &square){
-    // verify size of square.
-    if (square.size()!=3 || 
-        square[0].size()!=3 ||
-        square[1].size()!=3 ||
-        square[2].size()!=3){
-        cout<<"not a good square"<<endl;
-        return false;
-    }
+    // commented as we will get valid square always
+    // // verify size of square.
+    // if (square.size()!=3 || 
+    //     square[0].size()!=3 ||
+    //     square[1].size()!=3 ||
+    //     square[2].size()!=3){
+    //     cout<<"not a good square"<<endl;
+    //     return false;
+    // }
+
     // verify duplicates in square.
     // verify total sum. total sum is also verified by sum of three elements.
     map<int,int> mp;
@@ -116,6 +119,8 @@ bool iner_isAmSquare(vector<vector<int> > &square){
     
     if(min_sum == INT_MAX && max_sum == 0) return true;
     if(max_sum-min_sum > 1) return false;
+    
+    if(square[0][0] + square[1][0]>MAX_AB_SUM) return false; // this sum can not be greater than 77;
     return true;
 }
 
@@ -181,6 +186,8 @@ vector<vector<vector<int>>> rec(vector<vector<int>> &square){
 vector<vector<vector<int>>> amSquares(int a,int b){
     vector<vector<vector<int> > > res;
 
+    if(a+b>MAX_AB_SUM) return res;
+
     // empty square.
     vector<vector<int> > square(3,vector<int>(3,-1));
     // set `a` and `b`
@@ -211,7 +218,7 @@ int main(){
             
         }
     }
-    // cout<<res.size()<<endl;
+    cout<<res.size()<<endl;
 
 
     // output to file
